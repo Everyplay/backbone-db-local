@@ -333,5 +333,6 @@ _.extend(LocalDb.prototype, Backbone.Events, {
 });
 
 LocalDb.prototype.sync = BackboneDb.prototype.sync;
+LocalDb.sync = LocalDb.prototype.sync;
 
 module.exports = LocalDb;
