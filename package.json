@@ -6,10 +6,10 @@
   "scripts": {
     "test": "make test"
   },
-  "author": {
-    "name": "nomon",
-    "email": "matti@applifier.com"
-  },
+  "contributors": [
+    "Nomon <matti@applifier.com>",
+    "mikkolehtinen <mikkol@unity3d.com"
+  ],
   "repository": {
     "type": "git",
     "url": "git://github.com/Everyplay/backbone-db-local.git"
