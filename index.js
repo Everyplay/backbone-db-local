@@ -156,9 +156,10 @@ var LocalDb = Backbone.Db = function LocalDb(name, options) {
   this.name = name;
   this.options = options;
   this.storage = getStorage(this.name, options.delay);
-  this.store().getItem(this.name, function(err, records) {
-    self.records = (records && records.split(',')) || [];
-  });
+  this.records = [];
+  // bypass event loop
+  this.records = this.store().getItem(this.name, function() {});
+  this.records = (this.records && this.records.split(',')) || [];
 };
 
 _.extend(LocalDb.prototype, Backbone.Events, {
