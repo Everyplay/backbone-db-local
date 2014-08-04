@@ -9,27 +9,41 @@ var util = require('util');
 
 var self = this;
 
-function getStorage() {
+function getStorage(name, delay) {
+  delay = delay || 0;
   var storage = self.localStorage;
   var database = {};
+
+  function respond(error, value, cb) {
+    if(delay === 0) {
+      var fn = process.setImmidiate || process.nextTick;
+      fn(function() {
+        cb(error, value);
+      });
+    } else {
+      setTimeout(function() {
+        cb(error, value);
+      }, delay);
+    }
+  }
   if (!storage) {
     // "localStorage"
     debug('creating mock storage');
     storage = {
       getItem: function(key, cb) {
         debug('getItem: ' + key);
-        cb(null, database[key]);
+        respond(null, database[key], cb);
         return database[key];
       },
       setItem: function(key, value, cb) {
         debug('setItem: ' + key + ' = ' + value);
         database[key] = value;
-        cb(null, value);
+        respond(null, value, cb);
       },
       removeItem: function(key, cb) {
         debug('removeItem: ' + key);
         delete database[key];
-        cb(null, true);
+        respond(null, true, cb);
       }
     };
   }
@@ -135,11 +149,13 @@ var getKey = function(model) {
   return _.isFunction(model.url) ? model.url() : model.url;
 };
 
-var LocalDb = Backbone.Db = function LocalDb(name) {
+var LocalDb = Backbone.Db = function LocalDb(name, options) {
   var self = this;
+  options = options || {};
   if (!(self instanceof LocalDb)) return new LocalDb(name);
   this.name = name;
-  this.storage = getStorage(this.name);
+  this.options = options;
+  this.storage = getStorage(this.name, options.delay);
   this.store().getItem(this.name, function(err, records) {
     self.records = (records && records.split(',')) || [];
   });
