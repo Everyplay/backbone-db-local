@@ -82,7 +82,7 @@ function sort(property) {
 
 function filterModels(models, filterOptions, callback) {
   if (!filterOptions.where) return callback(null, models);
-  debug('filtering results: %s', JSON.stringify(filterOptions));
+  debug('filtering results: %o', filterOptions);
   var filteredModels = [];
 
   filterOptions.where = _.mapValues(filterOptions.where, function(val) {
