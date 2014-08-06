@@ -1,6 +1,6 @@
 {
   "name": "backbone-db-local",
-  "version": "0.5.2",
+  "version": "0.5.3x",
   "description": "Backbone-db localStorage and in-process implementation",
   "main": "index.js",
   "scripts": {
