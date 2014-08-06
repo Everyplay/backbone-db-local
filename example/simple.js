@@ -1,6 +1,6 @@
 var DB = require('../');
 var _ = require('lodash');
-var Backbone = require('backbone');
+var Backbone = require('backdash');
 
 
 /* invokes the correct DB interface methods on this or this.db

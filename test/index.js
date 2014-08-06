@@ -2,7 +2,7 @@
  * Allow this test suite to be used on custom implementations of db, model and collection.
  */
 var _ = require('lodash');
-var Backbone = require('backbone');
+var Backbone = require('backdash');
 var modelTests = require('backbone-db/test/test.model');
 var collectionTests = require('backbone-db/test/test.collection');
 var Db = require('..');

@@ -1,4 +1,4 @@
-var Backbone = require('backbone');
+var Backbone = require('backdash');
 var BackboneDb = require('backbone-db');
 var errors = BackboneDb.errors;
 
@@ -16,7 +16,7 @@ function getStorage(name, delay) {
 
   function respond(error, value, cb) {
     if(delay === 0) {
-      var fn = process.setImmidiate || process.nextTick;
+      var fn = process.setImmediate || process.nextTick;
       fn(function() {
         cb(error, value);
       });
@@ -99,7 +99,6 @@ function filterModels(models, filterOptions, callback) {
       return val;
     }
   });
-
   var jq = jsonquery(filterOptions.where);
 
   jq.on('data', function(model) {
@@ -192,7 +191,7 @@ _.extend(LocalDb.prototype, Backbone.Events, {
   },
 
   find: function(model, options, cb) {
-    debug('FIND: ' + JSON.stringify(model));
+    debug('FIND model: %o, options %o',model.toJSON(), options);
     this.store().getItem(getKey(model), function(err, data) {
       data = data && JSON.parse(data);
       var errorMsg = util.format('%s (%s) not found (read)', model.type, model.id);
@@ -202,7 +201,7 @@ _.extend(LocalDb.prototype, Backbone.Events, {
   },
 
   findAll: function(model, options, cb) {
-    debug('FINDALL: ' + JSON.stringify(options));
+    debug('FINDALL: %o', options);
     var self = this;
     var models = [];
     var done;
@@ -251,7 +250,7 @@ _.extend(LocalDb.prototype, Backbone.Events, {
   },
 
   destroy: function(model, options, cb) {
-    debug('DESTROY: ' + JSON.stringify(model));
+    debug('DESTROY: %o' + model.toJSON(options));
     var self = this;
     if (model.isNew()) {
       return false;
