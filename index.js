@@ -324,14 +324,9 @@ _.extend(LocalDb.prototype, Backbone.Events, {
     var attribute = options.inc.attribute;
     var amount = options.inc.amount;
     var key = getKey(model);
-    this.store().getItem(key, function(err, data) {
-      if (err || !data) {
-        if (options.ignoreFailures) {
-          return cb(null, model);
-        }
-        var errorMsg = util.format('%s (%s), cannot INC', model.type, model.id);
-        return cb(err || new errors.NotFoundError(errorMsg));
-      }
+    var data = this.store().getItem(key, function() {});
+    if(data) {
+
       data = JSON.parse(data);
       var value = data.hasOwnProperty(attribute) ? data[attribute] : 0;
       value += amount;
@@ -339,7 +334,13 @@ _.extend(LocalDb.prototype, Backbone.Events, {
       self.store().setItem(key, JSON.stringify(data), function(err, res) {
         cb(err, data, res);
       });
-    });
+    } else {
+      if (options.ignoreFailures) {
+        return cb(null, model);
+      }
+      var errorMsg = util.format('%s (%s), cannot INC', model.type, model.id);
+      return cb(new errors.NotFoundError(errorMsg));
+    }
   },
 
   // expose "raw" storage backend.
