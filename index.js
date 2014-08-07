@@ -16,10 +16,7 @@ function getStorage(name, delay) {
 
   function respond(error, value, cb) {
     if(delay === 0) {
-      var fn = process.setImmediate || process.nextTick;
-      fn(function() {
-        cb(error, value);
-      });
+      if(cb) cb(error, value);
     } else {
       setTimeout(function() {
         cb(error, value);
@@ -31,12 +28,12 @@ function getStorage(name, delay) {
     debug('creating mock storage');
     storage = {
       getItem: function(key, cb) {
-        debug('getItem: ' + key);
+        debug('getItem: %s, it is: %o',key, database[key]);
         respond(null, database[key], cb);
         return database[key];
       },
       setItem: function(key, value, cb) {
-        debug('setItem: ' + key + ' = ' + value);
+        debug('setItem: %s to %o, was: %o', key, value, database[key]);
         database[key] = value;
         respond(null, value, cb);
       },
@@ -169,7 +166,7 @@ _.extend(LocalDb.prototype, Backbone.Events, {
   },
 
   create: function(model, options, cb) {
-    debug('CREATE: ' + JSON.stringify(model));
+    debug('CREATE: %o', model.toJSON());
     var self = this;
 
     function store(model) {
@@ -283,23 +280,25 @@ _.extend(LocalDb.prototype, Backbone.Events, {
       return this.inc(model, options, cb);
     }
     var id = getKey(model);
-    this.store().getItem(id, function(err, data) {
-      data = data && JSON.parse(data);
-      var modelData = model.toJSON(options);
+    var data = this.store().getItem(id);
+
+    //this.store().getItem(id, function(err, data) {
+    data = data && JSON.parse(data);
+    var modelData = model.toJSON(options);
       // Support for non plain object JSON types.
-      if (_.isPlainObject(data) && _.isPlainObject(modelData)) {
-        _.merge(data, modelData);
-      } else {
-        data = modelData;
-      }
-      self.store().setItem(id, JSON.stringify(data), function(err, res) {
-        // if models created with id.
-        if (self.records.indexOf(getKey(model)) === -1) {
-          self.records.push(getKey(model));
-        }
-        cb(err, model.toJSON(options), res);
-      });
-    });
+    if (_.isPlainObject(data) && _.isPlainObject(modelData)) {
+      _.merge(data, modelData);
+    } else if (_.isArray(data)) {
+      data = _.uniq(data.concat(modelData));
+    } else {
+      data = modelData;
+    }
+
+    self.store().setItem(id, JSON.stringify(data));
+    if (self.records.indexOf(id) === -1) {
+      self.records.push(id);
+    }
+    cb(null, model.toJSON(options), data);
   },
 
   _createDefaultId: (function(id) {
