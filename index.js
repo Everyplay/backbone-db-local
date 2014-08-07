@@ -19,7 +19,7 @@ function getStorage(name, delay) {
       if(cb) cb(error, value);
     } else {
       setTimeout(function() {
-        cb(error, value);
+        if(cb) cb(error, value);
       }, delay);
     }
   }
