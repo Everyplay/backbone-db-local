@@ -142,7 +142,7 @@ function queryModels(models, options, callback) {
 
 var getKey = function(model) {
   if (!model.url) return getKey(model);
-  return _.isFunction(model.url) ? model.url() : model.url;
+  return _.result(model, 'url');
 };
 
 var LocalDb = Backbone.Db = function LocalDb(name, options) {
@@ -247,15 +247,16 @@ _.extend(LocalDb.prototype, Backbone.Events, {
   },
 
   destroy: function(model, options, cb) {
-    debug('DESTROY: %o' + model.toJSON(options));
+    debug('DESTROY: %o', model.toJSON(options));
     var self = this;
     if (model.isNew()) {
       return false;
     }
-    this.store().removeItem(getKey(model), function() {
+    var modelId = getKey(model);
+    this.store().removeItem(modelId, function() {
       var found = false;
       self.records = _.reject(self.records, function(id) {
-        var itemFound = id === getKey(model);
+        var itemFound = id === modelId;
         if (!found) found = itemFound;
         return itemFound;
       });
