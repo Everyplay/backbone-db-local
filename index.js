@@ -220,13 +220,18 @@ _.extend(LocalDb.prototype, Backbone.Events, {
       options.where = searchAttrs;
     }
 
+    function notFoundError(model) {
+      var errorMsg = util.format('%s (%s) not found (read)',
+          model.type, (typeof model.id !== 'undefined')? model.id : 'index search');
+      return new errors.NotFoundError(errorMsg);
+    }
+
     if (this.records.length > 0) {
       done = _.after(this.records.length, function() {
         queryModels(models, options, function(err, results) {
           if (!model.model) {
             if (!results || results.length === 0) {
-              var errorMsg = util.format('%s (%s) not found (read)', model.type, model.id);
-              err = err || new errors.NotFoundError(errorMsg);
+              err = err || notFoundError(model);
             }
             return cb(err, results && results.length && results[0]);
           }
@@ -234,6 +239,9 @@ _.extend(LocalDb.prototype, Backbone.Events, {
         });
       });
     } else {
+      if (!model.model) {
+        return cb(notFoundError(model));
+      }
       return cb(null, []);
     }
 
