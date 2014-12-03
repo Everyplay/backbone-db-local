@@ -162,7 +162,7 @@ function queryModels(models, options, callback) {
         if (models[i].id === options.before_id) {
           offset = i - limit;
           if (offset < 0) offset = 0;
-          limit = i;
+          if (!options.limit || options.limit > i) limit = i;
           break;
         }
       }
