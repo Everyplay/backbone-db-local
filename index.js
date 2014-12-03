@@ -56,8 +56,8 @@ function sort(property) {
       var result = 0;
       var numberOfProperties = properties.length;
       while(result === 0 && i < numberOfProperties) {
-          result = sort(properties[i])(a, b);
-          i++;
+        result = sort(properties[i])(a, b);
+        i++;
       }
       return result;
     };
@@ -66,7 +66,13 @@ function sort(property) {
   if (_.isArray(property)) return multisort(property);
   debug('sorting by %s', property || '');
   var sortOrder = 1;
-  if (property[0] === '-') {
+  // property may be preparsed object
+  if (_.isObject(property)) {
+    var propertyKey = _.keys(property)[0];
+    sortOrder = property[propertyKey];
+    property = propertyKey;
+  }
+  else if (property[0] === '-') {
     sortOrder = -1;
     property = property.substr(1);
   }
@@ -110,30 +116,101 @@ function filterModels(models, filterOptions, callback) {
   jq.end();
 }
 
+function convertSort(sortProp) {
+  function _convert(prop) {
+    var sortOrder = 1;
+    if (prop && prop[0] === '-') {
+      sortOrder = -1;
+      prop = prop.substr(1);
+    }
+    var ret = {};
+    ret[prop] = sortOrder;
+    return ret;
+  }
+  if (_.isArray(sortProp)) {
+    var sortOpts = _.extend.apply(null, [{}].concat(_.map(sortProp, function(prop) {
+      return _convert(prop);
+    })));
+    return sortOpts;
+  } else {
+    return _convert(sortProp);
+  }
+}
+
 // mock sort, offset, after_id, before_id, limit & filtering
 function queryModels(models, options, callback) {
   var i;
   var offset = options.offset ? options.offset : 0;
   var limit = options.limit ? options.limit : models.length;
   filterModels(models, options, function(err, models) {
-    if (options.sort) models.sort(sort(options.sort));
-    if (options.after_id) {
+    var sortParams = options.sort;
+    var sortKeys = sortParams && _.keys(sortParams);
+    var isIdLimiting = options.after_id || options.before_id;
+    var reverseResults = false;
+
+    var findOffsetAsc = function(id) {
       for (i = 0; i < models.length; i++) {
         if (models[i].id === options.after_id) {
           offset = i + 1;
           break;
         }
       }
-    }
-    if (options.before_id) {
+    };
+
+    var findOffsetDesc = function(id) {
       for (i = 0; i < models.length; i++) {
         if (models[i].id === options.before_id) {
           offset = i - limit;
           if (offset < 0) offset = 0;
+          limit = i;
           break;
         }
       }
+    };
+
+    if (!isIdLimiting) {
+      if (sortParams) models.sort(sort(sortParams));
+    } else {
+      // we are id limiting -> figure out offset & limit based on given id
+      // sort order might need to be reversed temporarily when applying before_id or after_id
+      if (sortKeys && sortKeys.length > 1) {
+        return callback(new Error("before_id and after_id can only be used with single sort param"));
+      }
+      if (sortKeys) {
+        var sortProperty;
+        var parsedSort = convertSort(sortParams);
+
+        var applySort = function() {
+          models.sort(sort(parsedSort));
+          if (reverseResults) {
+            models = models.reverse();
+          }
+        };
+
+        if (parsedSort.id) {
+          sortProperty = 'id';
+        } else {
+          sortProperty = sortKeys[0];
+        }
+
+        if (options.after_id) {
+          if (parsedSort && parsedSort[sortProperty] === -1) {
+            parsedSort[sortProperty] = 1;
+            reverseResults = true;
+          }
+          applySort();
+          findOffsetAsc(options.after_id);
+        } else if (options.before_id) {
+          if (parsedSort && parsedSort[sortProperty] === 1) {
+            parsedSort[sortProperty] = -1;
+            reverseResults = true;
+          }
+          applySort();
+          findOffsetDesc(options.before_id);
+        }
+      }
     }
+
     models = models.splice(offset, limit);
     callback(err, models);
   });
