@@ -421,7 +421,7 @@ _.extend(LocalDb.prototype, Backbone.Events, {
       });
     } else {
       if (options.ignoreFailures) {
-        return cb(null, model);
+        return cb(null, {});
       }
       var errorMsg = util.format('%s (%s), cannot INC', model.type, model.id);
       return cb(new errors.NotFoundError(errorMsg));
