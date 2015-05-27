@@ -243,11 +243,11 @@ _.extend(LocalDb.prototype, Backbone.Events, {
   },
 
   create: function(model, options, cb) {
-    debug('CREATE: %o', model.toJSON());
+    debug('CREATE: %o', model.toJSON(options));
     var self = this;
 
     function store(model) {
-      self.store().setItem(getKey(model), JSON.stringify(model), function(err, res) {
+      self.store().setItem(getKey(model), JSON.stringify(model.toJSON(options)), function(err, res) {
         self.records.push(getKey(model));
         self.save(function(err) {
           return cb(err, model.toJSON(options), res);
