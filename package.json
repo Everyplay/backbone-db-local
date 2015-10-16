@@ -25,7 +25,7 @@
     "backdash": "^1.1.2-2.4.1",
     "debug": "^1.0.4",
     "jshint": "^2.5.2",
-    "jsonquery": "^0.1.4",
+    "jsonquery": "git+ssh://git@github.com/Everyplay/jsonquery.git#everyplay",
     "lodash": "^2.4.1"
   },
   "devDependencies": {
