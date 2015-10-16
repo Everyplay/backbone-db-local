@@ -21,7 +21,7 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "backbone-db": "^0.5.3",
+    "backbone-db": "^0.5.7",
     "backdash": "^1.1.2-2.4.1",
     "debug": "^1.0.4",
     "jshint": "^2.5.2",
